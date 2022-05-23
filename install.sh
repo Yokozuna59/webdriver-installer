@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set fileformat=unix
+set -u
 
 function abort() {
     echo -e "\x1B[31m✗ $@\x1B[0m" >&2
@@ -59,7 +59,6 @@ function get_cpu {
             ;;
         *)
             abort "Your CPU isn't supported by this script."
-            exit 1
             ;;
     esac
     good "$cpu CPU detected."
@@ -95,29 +94,55 @@ function get_package_manager {
     good "$package_manager package manager detected detected"
 }
 
-function ask_user {
-    trap "abort Operation aborted." SIGINT
-    while true; do
-        echo -e "- Press \x1B[1m${1}\x1B[0m to install \x1B[1m$2\x1B[0m"
-        echo -e "- Press \x1B[1m${3}\x1B[0m to install \x1B[1m$4\x1B[0m"
-        echo -e "- Press \x1B[1mControl-C\x1B[0m to cancel installation"
-        echo -n "[${1}/${3}] "
-        read -rsn1 answer
-        if [[ "${answer,,}" == "${1,,}" ]]; then
-            echo -e "\x1B[1mInstalling $2\x1B[0m"
-            readonly utility="${2,,}"
-            break
-        elif [[ "${answer,,}" == "${3,,}" ]]; then
-            echo -e "\x1B[1mInstalling $4\x1B[0m"
-            readonly utility="${4,,}"
-            break
-        else
-            bad "Unknown option, try again"
-        fi
-    done
+function update_upgrade_packages {
+    if [[ "$package_manager" == "apk" ]]; then
+        sudo apk update -qq
+        sudo apk upgrade -qq
+    elif [[ "$package_manager" == "apt-get" ]]; then
+        sudo apt-get update -qq
+        sudo apt-get upgrade -qq
+    elif [[ "$package_manager" == "yum" ]]; then
+        sudo yum check-update -qq
+        sudo yum update -qq
+    elif [[ "$package_manager" == "emerge" ]]; then
+        sudo emaint sync -a
+    elif [[ "$package_manager" == "pacman" ]]; then
+        sudo pacman -Syu -qq
+    elif [[ "$package_manager" == "zypper" ]]; then
+        sudo zypper refresh -qq
+        sudo zypper update -qq
+    elif [[ "$package_manager" == "brew" ]]; then
+        brew update
+        brew upgrade
+    elif [[ "$package_manager" == "port" ]]; then
+        sudo port selfupdate
+        sudo port upgrade outdated
+    fi
 }
 
-function donwload_requiments {
+function check_br {
+    if bc --version > /dev/null 2>&1; then
+        if [[ "$package_manager" == "apk" ]]; then
+            sudo apk install bc -qq
+        elif [[ "$package_manager" == "apt-get" ]]; then
+            sudo apt-get bc -qq
+        elif [[ "$package_manager" == "yum" ]]; then
+            sudo yum install bc -qq
+        elif [[ "$package_manager" == "emerge" ]]; then
+            sudo emerge bc -qq
+        elif [[ "$package_manager" == "pacman" ]]; then
+            sudo pacman -S bc -qq
+        elif [[ "$package_manager" == "zypper" ]]; then
+            sudo zypper install bc -qq
+        elif [[ "$package_manager" == "brew" ]]; then
+            brew isntall bc
+        elif [[ "$package_manager" == "port" ]]; then
+            sudo port install bc
+        fi
+    fi
+}
+
+function check_wget_or_curl {
     if curl --version > /dev/null 2>&1; then
         readonly utility="curl"
     elif wget --version > /dev/null 2>&1; then
@@ -127,34 +152,20 @@ function donwload_requiments {
         ask_user "C" "cURL" "W" "Wget"
 
         if [[ "$package_manager" == "apk" ]]; then
-            sudo apk update
-            sudo apk upgrade
-            sudo apk add --no-cache "$utility"
+            sudo apk add --no-cache "$utility" -qq
         elif [[ "$package_manager" == "apt-get" ]]; then
-            sudo apt-get update
-            sudo apt-get upgrade
-            sudo apt-get install "$utility"
+            sudo apt-get install "$utility" -qq
         elif [[ "$package_manager" == "yum" ]]; then
-            sudo yum check-update
-            sudo yum update
-            sudo yum install "$utility"
+            sudo yum install "$utility" -qq
         elif [[ "$package_manager" == "emerge" ]]; then
-            sudo emaint sync -a
-            sudo emerge "$utility"
+            sudo emerge "$utility" -qq
         elif [[ "$package_manager" == "pacman" ]]; then
-            sudo pacman -Syu
-            sudo pacman -S "$utility"
+            sudo pacman -S "$utility" -qq
         elif [[ "$package_manager" == "zypper" ]]; then
-            sudo zypper refresh
-            sudo zypper update
-            sudo zypper install "$utility"
+            sudo zypper install "$utility" -qq
         elif [[ "$package_manager" == "brew" ]]; then
-            brew update
-            brew upgrade
             brew install "$utility"
         elif [[ "$package_manager" == "port" ]]; then
-            sudo port selfupdate
-            sudo port upgrade outdated
             sudo port install "$utility"
         else
             echo -e "You need to install \x1B[1mHomebrew\x1B[0m or \x1B[1mPorts\x1B[0m to continue"
@@ -203,6 +214,28 @@ function donwload_requiments {
             fi
         fi
     fi
+}
+
+function ask_user {
+    trap "abort Operation aborted." SIGINT
+    while true; do
+        echo -e "- Press \x1B[1m${1}\x1B[0m to install \x1B[1m$2\x1B[0m"
+        echo -e "- Press \x1B[1m${3}\x1B[0m to install \x1B[1m$4\x1B[0m"
+        echo -e "- Press \x1B[1mControl-C\x1B[0m to cancel installation"
+        echo -n "[${1}/${3}] "
+        read -rsn1 answer
+        if [[ "${answer,,}" == "${1,,}" ]]; then
+            echo -e "\x1B[1mInstalling $2\x1B[0m"
+            readonly utility="${2,,}"
+            break
+        elif [[ "${answer,,}" == "${3,,}" ]]; then
+            echo -e "\x1B[1mInstalling $4\x1B[0m"
+            readonly utility="${4,,}"
+            break
+        else
+            bad "Unknown option, try again"
+        fi
+    done
 }
 
 function chrome_driver_install {
@@ -309,7 +342,9 @@ function main {
     get_os
     get_cpu
     get_package_manager
-    donwload_requiments
+    update_upgrade_packages
+    check_br
+    check_wget_or_curl
     chrome_driver_install
     firefox_driver_install
     # internet_explorer_driver_install https://www.selenium.dev/downloads/
