@@ -121,7 +121,7 @@ function update_upgrade_packages {
 }
 
 function check_br {
-    if bc --version > /dev/null 2>&1; then
+    if ! bc --version > /dev/null 2>&1; then
         if [[ "$package_manager" == "apk" ]]; then
             sudo apk install bc -qq
         elif [[ "$package_manager" == "apt-get" ]]; then
