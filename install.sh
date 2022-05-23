@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -u
+set -e
 
 function abort() {
     echo -e "\x1B[31m✗ $@\x1B[0m" >&2
@@ -85,10 +85,13 @@ function get_package_manager {
             abort "Your package manager isn't supported by this script."
         fi
     elif [[ "$os" == "mac" ]]; then
+        echo "1"
         if brew --version > /dev/null 2>&1; then
             readonly package_manager="brew"
         elif ports --version > /dev/null 2>&1; then
             readonly package_manager="port"
+        else
+            bad "No package manager found."
         fi
     fi
     good "$package_manager package manager detected detected"
@@ -109,8 +112,8 @@ function update_upgrade_packages {
     elif [[ "$package_manager" == "pacman" ]]; then
         sudo pacman -Syu -qq
     elif [[ "$package_manager" == "zypper" ]]; then
-        sudo zypper refresh -qq
-        sudo zypper update -qq
+        sudo zypper refresh
+        sudo zypper update
     elif [[ "$package_manager" == "brew" ]]; then
         brew update
         brew upgrade
@@ -133,7 +136,7 @@ function check_br {
         elif [[ "$package_manager" == "pacman" ]]; then
             sudo pacman -S bc -qq
         elif [[ "$package_manager" == "zypper" ]]; then
-            sudo zypper install bc -qq
+            sudo zypper install bc
         elif [[ "$package_manager" == "brew" ]]; then
             brew isntall bc
         elif [[ "$package_manager" == "port" ]]; then
@@ -337,6 +340,9 @@ function firefox_driver_install {
     fi
     good "Firefox driver installed successfully."
 }
+
+# function internet_explorer_driver_install {
+# }
 
 function main {
     get_os
