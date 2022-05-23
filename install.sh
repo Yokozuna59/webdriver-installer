@@ -132,7 +132,7 @@ function check_br {
         if [[ "$package_manager" == "apk" ]]; then
             sudo apk install bc -qq
         elif [[ "$package_manager" == "apt-get" ]]; then
-            sudo apt-get bc -qq
+            sudo apt-get install bc -qq
         elif [[ "$package_manager" == "yum" ]]; then
             sudo yum install bc -qq
         elif [[ "$package_manager" == "emerge" ]]; then
@@ -238,7 +238,7 @@ function check_zip {
         if [[ "$package_manager" == "apk" ]]; then
             sudo apk install zip -qq
         elif [[ "$package_manager" == "apt-get" ]]; then
-            sudo apt-get zip -qq
+            sudo apt-get install zip -qq
         elif [[ "$package_manager" == "yum" ]]; then
             sudo yum install zip -qq
         elif [[ "$package_manager" == "emerge" ]]; then
@@ -265,7 +265,7 @@ function check_tar {
         if [[ "$package_manager" == "apk" ]]; then
             sudo apk install tar -qq
         elif [[ "$package_manager" == "apt-get" ]]; then
-            sudo apt-get tar -qq
+            sudo apt-get install tar -qq
         elif [[ "$package_manager" == "yum" ]]; then
             sudo yum install tar -qq
         elif [[ "$package_manager" == "emerge" ]]; then
