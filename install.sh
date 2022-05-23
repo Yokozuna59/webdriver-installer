@@ -62,7 +62,7 @@ function get_cpu {
             exit 1
             ;;
     esac
-    echo -e "\x1B[32m✓ $cpu CPU detected.\x1B[0m"
+    good "$cpu CPU detected."
 }
 
 # check what package manager is running
@@ -235,8 +235,35 @@ function chrome_driver_install {
 }
 
 function firefox_driver_install {
-    least_firefox_drivers=`curl -fsSL https://github.com/$(curl -fsSL https://github.com/mozilla/geckodriver/tags | grep '<a href="/mozilla/geckodriver/releases/tag/' | head -n1 | sed 's/.*href="\/\(.*\)">.*/\1/') | grep 'data-skip-pjax' | sed 's/^.*href="\/\(.*\)".*$/\1/' | sed 's/" rel="nofollow//'`
-    for i in $least_firefox_drivers; do
+    if [[ "$os" == "linux" ]]; then
+        firefox_local_version=$(firefox --version | cut -d " " -f 3 | cut -d "." -f 1,2)
+    elif [[ "$os" == "mac" ]]; then
+        firefox_local_version=$(/Applications/Firefox.app/Contents/MacOS/firefox -v | cut -d " " -f 3 | cut -d "." -f 1,2)
+    elif [[ "$os" == "windows" ]]; then
+        readonly current_path=`pwd`
+        if [[ "$cpu" == "64-bit" ]]; then
+            `cd /mnt/c/Program\ Files/Mozilla\ Firefox`
+        elif [[ "$cpu" == "32-bit" ]]; then
+            `cd /mnt/c/Program\ Files\ \(x86\)/Mozilla\ Firefox`
+        fi
+        firefox_local_version=$(cmd.exe /c "firefox -v | more" | cut -d " " -f 3 | cut -d "." -f 1,2)
+        cd current_path
+    fi
+    geckodriver_versions=$(curl -fsSL https://github.com/mozilla/geckodriver/tags | grep '<a href="/mozilla/geckodriver/releases/tag/' | sed 's/.*href="\/\(.*\)">.*/\1/')
+
+    if [ $(bc <<< "$firefox_local_version > 90.0") -eq 1 ]; then
+        firefox_url="https://github.com/$(echo $geckodriver_versions | cut -d " " -f 1)"
+    elif [ $(bc <<< "$firefox_local_version > 79.0") -eq 1 ]; then
+        firefox_url="https://github.com/$(echo $geckodriver_versions | cut -d " " -f 2)"
+    elif [ $(bc <<< "$firefox_local_version >= 62.0") -eq 1 ]; then
+        firefox_url="https://github.com/$(echo $geckodriver_versions | cut -d " " -f 9)"
+    else
+        bad "Your Firefox version is not supported"
+        return 1
+    fi
+    firefox_drivers=`curl -fsSL $firefox_url | grep 'data-skip-pjax' | sed 's/^.*href="\/\(.*\)".*$/\1/' | sed 's/" rel="nofollow//'`
+
+    for i in $firefox_drivers; do
         if [[ "$i" == *"linux"* ]] && [[ "$os" == "linux" ]]; then
             if [[ "$i" == *"64"* ]] && [[ "$cpu" == "64-bit" ]]; then
                 firefox_url="https://github.com/$i"
