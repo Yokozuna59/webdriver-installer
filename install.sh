@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -u
+set fileformat=unix
 
 function abort() {
     echo -e "\x1B[31m✗ $@\x1B[0m" >&2
@@ -242,12 +242,12 @@ function firefox_driver_install {
     elif [[ "$os" == "windows" ]]; then
         readonly current_path=`pwd`
         if [[ "$cpu" == "64-bit" ]]; then
-            `cd /mnt/c/Program\ Files/Mozilla\ Firefox`
+            cd /mnt/c/Program\ Files/Mozilla\ Firefox
         elif [[ "$cpu" == "32-bit" ]]; then
-            `cd /mnt/c/Program\ Files\ \(x86\)/Mozilla\ Firefox`
+            cd /mnt/c/Program\ Files\ \(x86\)/Mozilla\ Firefox
         fi
-        firefox_local_version=$(cmd.exe /c "firefox -v | more" | cut -d " " -f 3 | cut -d "." -f 1,2)
-        cd current_path
+        firefox_local_version="$(cmd.exe /c "firefox -v | more" | cut -d " " -f 3 | cut -d "." -f 1,2 | tr -d '\r')"
+        cd $current_path
     fi
     geckodriver_versions=$(curl -fsSL https://github.com/mozilla/geckodriver/tags | grep '<a href="/mozilla/geckodriver/releases/tag/' | sed 's/.*href="\/\(.*\)">.*/\1/')
 
@@ -299,8 +299,8 @@ function firefox_driver_install {
         rm geckodriver.tar.gz
     elif [[ "$os" == "windows" ]]; then
         curl -fsSL -o geckodriver.zip "$firefox_url"
-        unzip -qq drivers/geckodriver.zip
-        rm drivers/geckodriver.zip
+        unzip -qq geckodriver.zip
+        rm geckodriver.zip
     fi
     good "Firefox driver installed successfully."
 }
