@@ -2,19 +2,17 @@
 
 set -e
 
-function abort() {
-    echo -e "\x1B[31m✗ $@\x1B[0m" >&2
-    exit 1
-}
-
+# print a red error message
 function bad() {
     echo -e "\x1B[31m✗ $@\x1B[0m" >&2
 }
 
+# print a grean message
 function good() {
     echo -e "\x1B[32m✓ $@\x1B[0m" >&2
 }
 
+# check if bash is exist
 if [ -z "${BASH_VERSION}" ]; then
     abort "Bash is required to interpret this script."
 fi
@@ -39,7 +37,8 @@ function get_os {
             readonly os="windows"
             ;;
         *)
-            abort "Your operating system isn't supported by this script."
+            bad "Your operating system isn't supported by this script."
+            exit 1
             ;;
     esac
     good "$os operating system detected."
@@ -58,7 +57,8 @@ function get_cpu {
             readonly cpu="M1"
             ;;
         *)
-            abort "Your CPU isn't supported by this script."
+            bad "Your CPU isn't supported by this script."
+            exit 1
             ;;
     esac
     good "$cpu CPU detected."
@@ -82,10 +82,10 @@ function get_package_manager {
             fi
         done
         if [[ "$package_manager" == "" ]]; then
-            abort "Your package manager isn't supported by this script."
+            bad "Your package manager isn't supported by this script."
+            exit 1
         fi
     elif [[ "$os" == "mac" ]]; then
-        echo "1"
         if brew --version > /dev/null 2>&1; then
             readonly package_manager="brew"
         elif ports --version > /dev/null 2>&1; then
@@ -97,6 +97,7 @@ function get_package_manager {
     good "$package_manager package manager detected detected"
 }
 
+# update and upgrade packages
 function update_upgrade_packages {
     if [[ "$package_manager" == "apk" ]]; then
         sudo apk update -qq
@@ -123,8 +124,11 @@ function update_upgrade_packages {
     fi
 }
 
+# check if br is installed
 function check_br {
     if ! bc --version > /dev/null 2>&1; then
+        update_upgrade_packages
+        updated=true
         if [[ "$package_manager" == "apk" ]]; then
             sudo apk install bc -qq
         elif [[ "$package_manager" == "apt-get" ]]; then
@@ -145,12 +149,17 @@ function check_br {
     fi
 }
 
-function check_wget_or_curl {
+# check if wget or curl is installed
+function check_curl_or_wget {
     if curl --version > /dev/null 2>&1; then
         readonly utility="curl"
     elif wget --version > /dev/null 2>&1; then
         readonly utility="wget"
     else
+        if [[ "$updated" != true ]]; then
+            update_upgrade_packages
+            updated=true
+        fi
         bad "No curl or wget found..."
         ask_user "C" "cURL" "W" "Wget"
 
@@ -219,6 +228,60 @@ function check_wget_or_curl {
     fi
 }
 
+# check if zip installed
+function check_zip {
+    if ! zip --version > /dev/null 2>&1; then
+        if [[ "$updated" != true ]]; then
+            update_upgrade_packages
+            updated=true
+        fi
+        if [[ "$package_manager" == "apk" ]]; then
+            sudo apk install zip -qq
+        elif [[ "$package_manager" == "apt-get" ]]; then
+            sudo apt-get zip -qq
+        elif [[ "$package_manager" == "yum" ]]; then
+            sudo yum install zip -qq
+        elif [[ "$package_manager" == "emerge" ]]; then
+            sudo emerge zip -qq
+        elif [[ "$package_manager" == "pacman" ]]; then
+            sudo pacman -S zip -qq
+        elif [[ "$package_manager" == "zypper" ]]; then
+            sudo zypper install zip
+        elif [[ "$package_manager" == "brew" ]]; then
+            brew isntall zip
+        elif [[ "$package_manager" == "port" ]]; then
+            sudo port install zip
+        fi
+    fi
+}
+
+# check if zip installed
+function check_tar {
+    if ! tar --version > /dev/null 2>&1; then
+        if [[ "$updated" != true ]]; then
+            update_upgrade_packages
+            updated=true
+        fi
+        if [[ "$package_manager" == "apk" ]]; then
+            sudo apk install tar -qq
+        elif [[ "$package_manager" == "apt-get" ]]; then
+            sudo apt-get tar -qq
+        elif [[ "$package_manager" == "yum" ]]; then
+            sudo yum install tar -qq
+        elif [[ "$package_manager" == "emerge" ]]; then
+            sudo emerge tar -qq
+        elif [[ "$package_manager" == "pacman" ]]; then
+            sudo pacman -S tar -qq
+        elif [[ "$package_manager" == "zypper" ]]; then
+            sudo zypper install tar
+        elif [[ "$package_manager" == "brew" ]]; then
+            brew isntall tar
+        elif [[ "$package_manager" == "port" ]]; then
+            sudo port install tar
+        fi
+    fi
+}
+
 function ask_user {
     trap "abort Operation aborted." SIGINT
     while true; do
@@ -242,6 +305,22 @@ function ask_user {
 }
 
 function chrome_driver_install {
+    # if [[ "$os" == "linux" ]]; then
+    #     chrome_local_version=$(google-chrome --version | cut -d " " -f 3 | cut -d "." -f 1,3,4) || $(chromium-browser --version | cut -d " " -f 2 | cut -d "." -f 1,3,4)
+    # elif [[ "$os" == "mac" ]]; then
+    #     chrome_local_version=$(/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version | cut -d " " -f 3 | cut -d "." -f 1,2)
+    # elif [[ "$os" == "windows" ]]; then
+    #     readonly current_path=`pwd`
+    #     if [[ "$cpu" == "64-bit" ]]; then
+    #         cd /mnt/c/Program\ Files/Mozilla\ Firefox
+    #     elif [[ "$cpu" == "32-bit" ]]; then
+    #         cd /mnt/c/Program\ Files\ \(x86\)/Mozilla\ Firefox
+    #     fi
+    #     firefox_local_version="$(cmd.exe /c "firefox -v | more" | cut -d " " -f 3 | cut -d "." -f 1,2 | tr -d '\r')"
+    #     cd $current_path
+    # fi
+    # geckodriver_versions=$(curl -fsSL https://github.com/mozilla/geckodriver/tags | grep '<a href="/mozilla/geckodriver/releases/tag/' | sed 's/.*href="\/\(.*\)">.*/\1/')
+
     LEAST_CHROME_VERSION=`curl -fsSL https://chromedriver.storage.googleapis.com/LATEST_RELEASE`
     if [[ $os == "linux" ]]; then
         if [[ $cpu == "64-bit" ]]; then
@@ -257,6 +336,7 @@ function chrome_driver_install {
         elif [[ $cpu == "M1" ]]; then
             chrome_url="https://chromedriver.storage.googleapis.com/$LEAST_CHROME_VERSION/chromedriver_mac64_m1.zip"
         fi
+        echo $chrome_url
     elif [[ $os == "windows" ]]; then
         chrome_url="https://chromedriver.storage.googleapis.com/$LEAST_CHROME_VERSION/chromedriver_win32.zip"
     fi
@@ -348,9 +428,10 @@ function main {
     get_os
     get_cpu
     get_package_manager
-    update_upgrade_packages
     check_br
-    check_wget_or_curl
+    check_curl_or_wget
+    check_zip
+    check_tar
     chrome_driver_install
     firefox_driver_install
     # internet_explorer_driver_install https://www.selenium.dev/downloads/
