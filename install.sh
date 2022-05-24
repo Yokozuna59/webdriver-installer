@@ -386,14 +386,14 @@ function firefox_driver_install {
     elif [[ "$os" == "windows" ]]; then
         readonly current_path=`pwd`
         if [[ "$cpu" == "64-bit" ]]; then
-            firefox_path="/mnt/c/Program\ Files/Mozilla\ Firefox"
+            firefox_path="/mnt/c/Program Files/Mozilla Firefox"
         elif [[ "$cpu" == "32-bit" ]]; then
-            firefox_path="/mnt/c/Program\ Files\ \(x86\)/Mozilla\ Firefox"
+            firefox_path="/mnt/c/Program Files (x86)/Mozilla Firefox"
         fi
-        if [[ -d firefox_path ]]; then
-            cd $firefox_path
+        if [[ -d "$firefox_path" ]]; then
+            cd "$firefox_path"
             firefox_local_version="$(cmd.exe /c "firefox -v | more" | cut -d " " -f 3 | cut -d "." -f 1,2 | tr -d '\r')"
-            cd $current_path
+            cd "$current_path"
         fi
     fi
     if [[ "$firefox_local_version" == "" ]]; then
@@ -456,9 +456,6 @@ function firefox_driver_install {
     green "Firefox driver installed successfully."
 }
 
-# function internet_explorer_driver_install {
-# }
-
 function main {
     get_os
     get_cpu
@@ -469,9 +466,6 @@ function main {
     check_tar
     chrome_driver_install
     firefox_driver_install
-    # internet_explorer_driver_install https://www.selenium.dev/downloads/
-    # opera_driver_install https://github.com/operasoftware/operachromiumdriver/releases
-    # edge_driver_install https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
 }
 
 main
