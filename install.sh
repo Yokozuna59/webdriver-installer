@@ -317,52 +317,54 @@ function ask_user {
 }
 
 function chrome_driver_install {
-    # if [[ "$os" == "linux" ]]; then
-    #     if google-chrome --version > /dev/null 2>&1; then
-    #         chrome_local_version=$(google-chrome --version | cut -d " " -f 3)
-    #     elif chromium-browser --version > /dev/null 2>&1; then
-    #         chrome_local_version=$(chromium-browser --version | cut -d " " -f 2)
-    #     fi
-    # elif [[ "$os" == "mac" ]]; then
-    #     if /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version > /dev/null 2>&1; then
-    #         chrome_local_version=$(/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version | cut -d " " -f 3)
-    #     elif /Applications/Chromium.app/Contents/MacOS/Chromium --version > /dev/null 2>&1; then
-    #         chrome_local_version=$(/Applications/Chromium.app/Contents/MacOS/Chromium --version | cut -d " " -f 2)
-    #     fi
-    # elif [[ "$os" == "windows" ]]; then
-    #     readonly current_path=`pwd`
-    #     if [[ "$cpu" == "64-bit" ]]; then
-    #         cd /mnt/c/Program\ Files/Mozilla\ Firefox
-    #     elif [[ "$cpu" == "32-bit" ]]; then
-    #         cd /mnt/c/Program\ Files\ \(x86\)/Mozilla\ Firefox
-    #     fi
-    #     firefox_local_version="$(cmd.exe /c "firefox -v | more" | cut -d " " -f 3 | cut -d "." -f 1,2 | tr -d '\r')"
-    #     cd $current_path
-    # fi
-    # geckodriver_versions=$(curl -fsSL https://github.com/mozilla/geckodriver/tags | grep '<a href="/mozilla/geckodriver/releases/tag/' | sed 's/.*href="\/\(.*\)">.*/\1/')
-    # if [[ "$chrome_local_version" == "" ]]; then
-    #     yellow "You don't have Chrome nor Chromium installed, so the script won't download the driver for you."
-    #     return 0
-    # fi
+    if [[ "$os" == "linux" ]]; then
+        if google-chrome --version > /dev/null 2>&1; then
+            chrome_local_version=$(google-chrome --version | cut -d " " -f 3)
+        elif chromium-browser --version > /dev/null 2>&1; then
+            chrome_local_version=$(chromium-browser --version | cut -d " " -f 2)
+        fi
+    elif [[ "$os" == "mac" ]]; then
+        if /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version > /dev/null 2>&1; then
+            chrome_local_version=$(/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version | cut -d " " -f 3)
+        elif /Applications/Chromium.app/Contents/MacOS/Chromium --version > /dev/null 2>&1; then
+            chrome_local_version=$(/Applications/Chromium.app/Contents/MacOS/Chromium --version | cut -d " " -f 2)
+        fi
+    elif [[ "$os" == "windows" ]]; then
+        if [[ "$cpu" == "64-bit" ]]; then
+            chrome_path="/mnt/c/Program Files/Google/Chrome/Application"
+        elif [[ "$cpu" == "32-bit" ]]; then
+            chrome_path="/mnt/c/Program Files (x86)/Google/Chrome/Application"
+        fi
+        if [[ -d "$chrome_path" ]]; then
+	    chrome_local_version=`ls "$chrome_path" | head -1`
+        fi
+    fi
 
-    LEAST_CHROME_VERSION=`curl -fsSL https://chromedriver.storage.googleapis.com/LATEST_RELEASE`
+    if [[ "$chrome_local_version" == "" ]] && [[ "$os" != "windows" ]]; then
+        yellow "You don't have Chrome nor Chromium installed, so the script won't download the driver for you."
+        return 0
+    elif [[ "$chrome_local_version" == "" ]] && [[ "$os" == "windows" ]]; then
+        yellow "You don't have Chrome installed, so the script won't download the driver for you."
+        return 0
+    fi
+
+    latest_chrome_version=`curl -fsSL https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$(echo $chrome_local_version | cut -d "." -f 1)`
     if [[ $os == "linux" ]]; then
         if [[ $cpu == "64-bit" ]]; then
-            chrome_url="https://chromedriver.storage.googleapis.com/$LEAST_CHROME_VERSION/chromedriver_linux64.zip"
+            chrome_url="https://chromedriver.storage.googleapis.com/$latest_chrome_version/chromedriver_linux64.zip"
         elif [[ $cpu == "32-bit" ]]; then
-            chrome_url="https://chromedriver.storage.googleapis.com/$LEAST_CHROME_VERSION/chromedriver_linux32.zip"
+            chrome_url="https://chromedriver.storage.googleapis.com/$latest_chrome_version/chromedriver_linux32.zip"
         fi
     elif [[ $os == "mac" ]]; then
         if [[ $cpu == "64-bit" ]]; then
-            chrome_url="https://chromedriver.storage.googleapis.com/$LEAST_CHROME_VERSION/chromedriver_mac64.zip"
+            chrome_url="https://chromedriver.storage.googleapis.com/$latest_chrome_version/chromedriver_mac64.zip"
         elif [[ $cpu == "32-bit" ]]; then
-            chrome_url="https://chromedriver.storage.googleapis.com/$LEAST_CHROME_VERSION/chromedriver_mac32.zip"
+            chrome_url="https://chromedriver.storage.googleapis.com/$latest_chrome_version/chromedriver_mac32.zip"
         elif [[ $cpu == "M1" ]]; then
-            chrome_url="https://chromedriver.storage.googleapis.com/$LEAST_CHROME_VERSION/chromedriver_mac64_m1.zip"
+            chrome_url="https://chromedriver.storage.googleapis.com/$latest_chrome_version/chromedriver_mac64_m1.zip"
         fi
-        echo $chrome_url
     elif [[ $os == "windows" ]]; then
-        chrome_url="https://chromedriver.storage.googleapis.com/$LEAST_CHROME_VERSION/chromedriver_win32.zip"
+        chrome_url="https://chromedriver.storage.googleapis.com/$latest_chrome_version/chromedriver_win32.zip"
     fi
 
     if curl -fsSL -o chromedriver.zip "$chrome_url" > /dev/null 2>&1; then
@@ -370,7 +372,7 @@ function chrome_driver_install {
         rm chromedriver.zip
         green "Chrome driver installed successfully."
     else
-        red "Your device architecture does not support chrome driver version $LEAST_CHROME_VERSION"
+        red "Your device architecture does not support chrome driver version $latest_chrome_version"
     fi
 }
 
