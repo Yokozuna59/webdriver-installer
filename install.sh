@@ -352,7 +352,7 @@ function chrome_driver_install {
         elif [[ $cpu == "32-bit" ]]; then
             chrome_url="https://chromedriver.storage.googleapis.com/$LEAST_CHROME_VERSION/chromedriver_linux32.zip"
         fi
-    elif [[ $os == "macOS" ]]; then
+    elif [[ $os == "mac" ]]; then
         if [[ $cpu == "64-bit" ]]; then
             chrome_url="https://chromedriver.storage.googleapis.com/$LEAST_CHROME_VERSION/chromedriver_mac64.zip"
         elif [[ $cpu == "32-bit" ]]; then
@@ -444,7 +444,7 @@ function firefox_driver_install {
     if [[ "$firefox_url" == "" ]]; then
         red "Your device architecture does not support firefox driver"
     fi
-    if [[ "$os" == "linux" ]] || [[ $os == "macOS" ]]; then
+    if [[ "$os" == "linux" ]] || [[ $os == "mac" ]]; then
         curl -fsSL -o geckodriver.tar.gz "$firefox_url"
         tar -xzf geckodriver.tar.gz
         rm geckodriver.tar.gz
