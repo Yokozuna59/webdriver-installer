@@ -5,15 +5,16 @@ function get_cpu {
 
 function install_chrome_driver {
     if ("$cpu" -like "64-bit") {
-	$chrome_path="C:\Program Files\Google\Chrome\Application"
+	    $chrome_path="C:\Program Files\Google\Chrome\Application"
     } else {
-	$chrome_path="C:\Program Files (x86)\Google\Chrome\Application"
+	    $chrome_path="C:\Program Files (x86)\Google\Chrome\Application"
     }
 
     if (Test-Path -Path $chrome_path) {
-	$chrome_local_version=((Get-ChildItem -Path "$chrome_path" -Name)[0]).split(".")[0]
+	    $chrome_local_version=((Get-ChildItem -Path "$chrome_path" -Name)[0]).split(".")[0]
     } else {
-	Write-Host "You don't have Firefox broswer, so the script won't download the driver for you." -ForegroundColor Yellow
+	    Write-Host "You don't have Chrome broswer, so the script won't download the driver for you." -ForegroundColor Yellow
+	    return
     }
 
     $ProgressPreference = 'SilentlyContinue'
@@ -31,13 +32,13 @@ function install_chrome_driver {
     Write-Host "Chrome driver installed successfully." -ForegroundColor Green
 }
 
-# function install_firefox_driver {
-# }
+function install_firefox_driver {
+}
 
 function main {
     get_cpu
     install_chrome_driver
-    # install_firefox_driver
+    install_firefox_driver
 }
 
 main
