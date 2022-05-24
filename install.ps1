@@ -1,5 +1,5 @@
 function get_cpu {
-    $cpu=(gwmi win32_operatingsystem | select osarchitecture).osarchitecture
+    $global:cpu=(gwmi win32_operatingsystem | select osarchitecture).osarchitecture
     Write-Host "$cpu CPU detected." -ForegroundColor Green
 }
 
