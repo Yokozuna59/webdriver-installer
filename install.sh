@@ -46,7 +46,7 @@ function get_os {
             exit 1
             ;;
     esac
-    green "${os^} operating system detected."
+    green "$os operating system detected."
 }
 
 # check what CPU is running
@@ -319,15 +319,15 @@ function ask_user {
 function chrome_driver_install {
     # if [[ "$os" == "linux" ]]; then
     #     if google-chrome --version > /dev/null 2>&1; then
-    #         chrome_local_version=$(google-chrome --version | cut -d " " -f 3 | cut -d "." -f 1,3,4)
+    #         chrome_local_version=$(google-chrome --version | cut -d " " -f 3)
     #     elif chromium-browser --version > /dev/null 2>&1; then
-    #         chrome_local_version=$(chromium-browser --version | cut -d " " -f 2 | cut -d "." -f 1,3,4)
+    #         chrome_local_version=$(chromium-browser --version | cut -d " " -f 2)
     #     fi
     # elif [[ "$os" == "mac" ]]; then
     #     if /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version > /dev/null 2>&1; then
-    #         chrome_local_version=$(/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version | cut -d " " -f 3 | cut -d "." -f 1,2)
+    #         chrome_local_version=$(/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version | cut -d " " -f 3)
     #     elif /Applications/Chromium.app/Contents/MacOS/Chromium --version > /dev/null 2>&1; then
-    #         chrome_local_version=$(/Applications/Chromium.app/Contents/MacOS/Chromium --version | cut -d " " -f 2 | cut -d "." -f 1,2)
+    #         chrome_local_version=$(/Applications/Chromium.app/Contents/MacOS/Chromium --version | cut -d " " -f 2)
     #     fi
     # elif [[ "$os" == "windows" ]]; then
     #     readonly current_path=`pwd`
