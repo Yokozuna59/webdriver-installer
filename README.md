@@ -4,7 +4,7 @@
 
 ## Requirements
 
-1. [cURL](https://curl.se/docs/install.html) for Windows WSL, Linux and Mac
+1. [cURL](https://curl.se/docs/install.html) or [Wget](http://mirrors.kernel.org/gnu/wget/) for Windows (WSL), Linux or Mac.
 
 ## Run Remotely
 
@@ -12,6 +12,7 @@
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Yokozuna59/webdriver-installer/master/install.sh)"
+# or /bin/bash -c "$(wget -qO- https://raw.githubusercontent.com/Yokozuna59/webdriver-installer/master/install.sh)"
 ```
 
 ### Windows (PowerShell)
