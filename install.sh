@@ -132,32 +132,6 @@ function update_upgrade_packages {
     readonly export updated=true
 }
 
-# check if br is installed
-function check_br {
-    if ! bc --version > /dev/null 2>&1; then
-        update_upgrade_packages
-        yellow "The script needs \`bc\` to be able to continue!"
-        if [[ "$package_manager" == "apk" ]]; then
-            sudo apk install bc -q
-        elif [[ "$package_manager" == "apt-get" ]]; then
-            sudo apt-get install bc -qq
-        elif [[ "$package_manager" == "yum" ]]; then
-            sudo yum install bc -q
-        elif [[ "$package_manager" == "emerge" ]]; then
-            sudo emerge bc -qq
-        elif [[ "$package_manager" == "pacman" ]]; then
-            sudo pacman -S bc -q
-        elif [[ "$package_manager" == "zypper" ]]; then
-            sudo zypper install bc -q
-        elif [[ "$package_manager" == "brew" ]]; then
-            brew isntall bc
-        elif [[ "$package_manager" == "port" ]]; then
-            sudo port install bc
-        fi
-        green "Bc installed!"
-    fi
-}
-
 # check if wget or curl is installed
 function check_curl_or_wget {
     if curl --version > /dev/null 2>&1; then
@@ -462,7 +436,7 @@ function firefox_driver_install {
         fi
         if [[ -d "$firefox_path" ]]; then
             cd "$firefox_path"
-            firefox_local_version="$(cmd.exe /c "firefox -v | more" | cut -d " " -f 3 | cut -d "." -f 1,2 | tr -d '\r')"
+            firefox_local_version="$(cmd.exe /c "firefox -v | more" | cut -d " " -f 3 | cut -d "." -f 1 | tr -d '\r')"
             cd "$current_path"
         fi
     fi
@@ -470,18 +444,18 @@ function firefox_driver_install {
         yellow "You don't have Firefox broswer, so the script won't download the driver for you."
         return 0
     fi
-    geckodriver_versions=$(curl -fsSL https://api.github.com/repos/mozilla/geckodriver/releases | grep '        "name": "' | sed 's/        "name": "//' | sed 's/",//' | grep "$driver_file_name")
+    geckodriver_versions=$(curl -fsSL https://api.github.com/repos/mozilla/geckodriver/releases | grep 'browser_download_url' | sed 's/        "browser_download_url": "//' | sed 's/"//' | grep "$driver_file_name")
     if [[ "$geckodriver_versions" == "" ]]; then
         red "Your device architecture does not support firefox driver"
     fi
-    if [ $(bc <<< "$firefox_local_version > 90.0") -eq 1 ]; then
-        firefox_url="https://github.com/mozilla/geckodriver/releases/download/$(echo $geckodriver_versions | cut -d " " -f 1 | cut -d "-" -f 2)/$(echo $geckodriver_versions | cut -d " " -f 1)"
-    elif [ $(bc <<< "$firefox_local_version > 79.0") -eq 1 ]; then
-        firefox_url="https://github.com/mozilla/geckodriver/releases/download/$(echo $geckodriver_versions | cut -d " " -f 3 | cut -d "-" -f 2)/$(echo $geckodriver_versions | cut -d " " -f 3)"
-    elif [ $(bc <<< "$firefox_local_version >= 62.0") -eq 1 ]; then
-        firefox_url="https://github.com/mozilla/geckodriver/releases/download/$(echo $geckodriver_versions | cut -d " " -f 15 | cut -d "-" -f 2)/$(echo $geckodriver_versions | cut -d " " -f 15)"
+    if [ $firefox_local_version -gt 90 ]; then
+        firefox_url=$(echo $geckodriver_versions | cut -d " " -f 1)
+    elif [ $firefox_local_version -gt 79 ]; then
+        firefox_url=$(echo $geckodriver_versions | cut -d " " -f 2)
+    elif [ $firefox_local_version -ge 62 ]; then
+        firefox_url=$(echo $geckodriver_versions | cut -d " " -f 9)
     else
-        red "Your Firefox version is not supported"
+        red "Your Firefox version in not supported, so the script won't download the driver for you."
         return 0
     fi
     if [[ "$os" == "linux" ]] || [[ $os == "mac" ]]; then
@@ -500,7 +474,6 @@ function main {
     get_os
     get_processor
     get_package_manager
-    check_br
     check_curl_or_wget
     check_zip
     check_tar
