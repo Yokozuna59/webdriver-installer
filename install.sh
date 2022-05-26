@@ -421,11 +421,11 @@ function firefox_driver_install {
     driver_file_name=$(echo "$os$processor" | sed 's/windows/win/' | sed 's/-bit//' | sed 's/mac64/mac/' | sed 's/macM1/macos-aarch64/')
     if [[ "$os" == "linux" ]]; then
         if firefox --version > /dev/null 2>&1; then
-            firefox_local_version=$(firefox --version | cut -d " " -f 3 | cut -d "." -f 1,2)
+            firefox_local_version=$(firefox --version | cut -d " " -f 3 | cut -d "." -f 1)
         fi
     elif [[ "$os" == "mac" ]]; then
         if /Applications/Firefox.app/Contents/MacOS/firefox -v > /dev/null 2>&1; then
-            firefox_local_version=$(/Applications/Firefox.app/Contents/MacOS/firefox -v | cut -d " " -f 3 | cut -d "." -f 1,2)
+            firefox_local_version=$(/Applications/Firefox.app/Contents/MacOS/firefox -v | cut -d " " -f 3 | cut -d "." -f 1)
         fi
     elif [[ "$os" == "windows" ]]; then
         readonly current_path=`pwd`
