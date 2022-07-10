@@ -132,6 +132,34 @@ function update_upgrade_packages {
     readonly export updated=true
 }
 
+# check if bc is installed
+function check_bc {
+    if ! bc --version > /dev/null 2>&1; then
+        if [[ "$updated" != true ]]; then
+            update_upgrade_packages
+        fi
+        yellow "The script needs \`bc\` to be able to continue!"
+        if [[ "$package_manager" == "apk" ]]; then
+            sudo apk install bc -q
+        elif [[ "$package_manager" == "apt-get" ]]; then
+            sudo apt-get install bc -qq
+        elif [[ "$package_manager" == "yum" ]]; then
+            sudo yum install bc -q
+        elif [[ "$package_manager" == "emerge" ]]; then
+            sudo emerge bc -q
+        elif [[ "$package_manager" == "pacman" ]]; then
+            sudo pacman -S bc -q
+        elif [[ "$package_manager" == "zypper" ]]; then
+            sudo zypper install bc -q
+        elif [[ "$package_manager" == "brew" ]]; then
+            brew isntall bc
+        elif [[ "$package_manager" == "port" ]]; then
+            sudo port install bc
+        fi
+        green "Bc installed successfully."
+    fi
+}
+
 # check if wget or curl is installed
 function check_curl_or_wget {
     if curl --version > /dev/null 2>&1; then
@@ -242,7 +270,7 @@ function check_curl_or_wget {
                 # donwload_requiments
             fi
         fi
-        green "$utility installed!"
+        green "$utility installed successfully."
     fi
 }
 
@@ -270,7 +298,7 @@ function check_cut {
         elif [[ "$package_manager" == "port" ]]; then
             sudo port install cut
         fi
-        green "Cut installed!"
+        green "Cut installed successfully."
     fi
 }
 
@@ -298,7 +326,7 @@ function check_grep {
         elif [[ "$package_manager" == "port" ]]; then
             sudo port install grep
         fi
-        green "Grep installed!"
+        green "Grep installed successfully."
     fi
 }
 
@@ -326,7 +354,7 @@ function check_tar {
         elif [[ "$package_manager" == "port" ]]; then
             sudo port install tar
         fi
-        green "Tar installed!"
+        green "Tar installed successfully."
     fi
 }
 
@@ -354,7 +382,7 @@ function check_zip {
         elif [[ "$package_manager" == "port" ]]; then
             sudo port install zip
         fi
-        green "Zip installed!"
+        green "Zip installed successfully."
     fi
 }
 
@@ -408,7 +436,7 @@ function chrome_driver_install {
         chrome_url="https://chromedriver.storage.googleapis.com/$latest_chrome_version/chromedriver_win32.zip"
     fi
     if curl -fsSL -o chromedriver.zip "$chrome_url" > /dev/null 2>&1; then
-        unzip -qq -o chromedriver.zip
+        unzip -qq -o chromedriver.zip -d "drivers"
         rm chromedriver.zip
         green "Chrome driver installed successfully."
     else
@@ -458,13 +486,14 @@ function firefox_driver_install {
         red "Your Firefox version in not supported, so the script won't download the driver for you."
         return 0
     fi
+    mkdir -p drivers
     if [[ "$os" == "linux" ]] || [[ $os == "mac" ]]; then
         curl -fsSL -o geckodriver.tar.gz "$firefox_url"
-        tar -xzf geckodriver.tar.gz
+        tar -xzf geckodriver.tar.gz -C drivers
         rm geckodriver.tar.gz
     elif [[ "$os" == "windows" ]]; then
         curl -fsSL -o geckodriver.zip "$firefox_url"
-        unzip -qq -o geckodriver.zip
+        unzip -qq -o geckodriver.zip -d drivers
         rm geckodriver.zip
     fi
     green "Firefox driver installed successfully."
@@ -474,6 +503,7 @@ function main {
     get_os
     get_processor
     get_package_manager
+    check_bc
     check_curl_or_wget
     check_zip
     check_tar
