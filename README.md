@@ -10,7 +10,7 @@
 | macOS Apple Silicon | ✅ | N/A |
 | Linux x86_64 | ✅ | ✅ |
 | Linux i686 | ✅ | N/A |
-| Linux aarch64 | N/A | ✅ |
+| Linux aarch64 | N/A | N/A |
 | Windows 64bit | ✅ | ✅ |
 | Windows 32bit | ✅ | N/A |
 | Windows Arm64 | N/A | N/A |
