@@ -393,6 +393,9 @@ function chrome_driver_install {
             chrome_local_version=$(google-chrome --version | cut -d " " -f 3)
         elif chromium-browser --version > /dev/null 2>&1; then
             chrome_local_version=$(chromium-browser --version | cut -d " " -f 2)
+        # debian requests chromium, not chromium-browser as terminal command input
+        elif chromium --version > /dev/null 2>&1; then
+            chrome_local_version=$(chromium --version | cut -d " " -f 2)
         fi
     elif [[ "$os" == "mac" ]]; then
         if /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version > /dev/null 2>&1; then
