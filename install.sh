@@ -4,17 +4,17 @@ set -e
 
 # print a red error message
 function red {
-    echo -e "\x1B[31m✗ $@\x1B[0m" >&2
+    echo -e "\x1B[31m✗ $*\x1B[0m" >&2
 }
 
 # print a yellow massage
 function yellow {
-    echo -e "\x1B[33m! $@\x1B[0m" >&2
+    echo -e "\x1B[33m! $*\x1B[0m" >&2
 }
 
 # print a grean message
 function green {
-    echo -e "\x1B[32m✓ $@\x1B[0m" >&2
+    echo -e "\x1B[32m✓ $*\x1B[0m" >&2
 }
 
 # check if bash is exists
