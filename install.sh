@@ -386,6 +386,35 @@ function check_zip {
     fi
 }
 
+# check if chromium installed
+function check_chromium {
+    if ! chromium --version > /dev/null 2>&1; then
+        if [[ "$updated" != true ]]; then
+            update_upgrade_packages
+        fi
+        yellow "The script needs \`chromium\` to be able to continue!"
+        if [[ "$package_manager" == "apk" ]]; then
+            sudo apk install chromium -q
+        elif [[ "$package_manager" == "apt-get" ]]; then
+            sudo apt-get install chromium -qq
+        elif [[ "$package_manager" == "yum" ]]; then
+            sudo yum install chromium -q
+        elif [[ "$package_manager" == "emerge" ]]; then
+            sudo emerge chromium -q
+        elif [[ "$package_manager" == "pacman" ]]; then
+            sudo pacman -S chromium -q
+        elif [[ "$package_manager" == "zypper" ]]; then
+            sudo zypper install chromium -q
+        elif [[ "$package_manager" == "brew" ]]; then
+            brew isntall chromium
+        elif [[ "$package_manager" == "port" ]]; then
+            sudo port install chromium
+        fi
+        green "chromium installed successfully."
+    fi
+
+}
+
 # install chromedriver
 function chrome_driver_install {
     if [[ "$os" == "linux" ]]; then
@@ -414,10 +443,12 @@ function chrome_driver_install {
         fi
     fi
     if [[ "$chrome_local_version" == "" ]] && [[ "$os" != "windows" ]]; then
-        yellow "You don't have Chrome nor Chromium installed, so the script won't download the driver for you."
+        # yellow "You don't have Chrome installed, so the script won't download the driver for you."
+        yellow "Chromium is not installed on this system.. Attempting to install latest version.."
+        check_chromium
         return 0
     elif [[ "$chrome_local_version" == "" ]] && [[ "$os" == "windows" ]]; then
-        yellow "You don't have Chrome installed, so the script won't download the driver for you."
+        yellow "You don't have Chrome nor Chromium installed, so the script won't download the driver for you."
         return 0
     fi
     latest_chrome_version=`curl -fsSL https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$(echo $chrome_local_version | cut -d "." -f 1)`
